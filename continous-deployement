@@ -1,0 +1,52 @@
+pipeline{
+agent any
+parameters {
+  string(name: 'Branch', defaultValue: '', description: 'Select the name ', trim: true)
+  string(name: 'choice', defaultValue: '', description: 'Select the environment')
+  string(name: 'Deploy', defaultValue: '', description: 'select the deploy')
+} 
+  stages{
+   stage("Verification"){
+    steps{
+      script{
+	   echo "Verification started"
+	   echo "${params.Branch}"
+	   echo "${params.Deploy}"
+	   echo "${params.Choice}"
+	   echo "Verification completed"
+        }
+      }
+    }
+   stage("Tomcat_deployment"){
+	   //when{
+       // expression {params.Branch == "master" && params.Deploy == true}
+       //}
+    steps{
+      script{
+	   echo "Deployement started"
+	   sh "ssh root@172.31.89.181 /root/tomcat/APACHE_TOMCAT/bin/shutdown.sh"
+	   sh "scp -o StrictHostKeyChecking=no /var/lib/jenkins/workspace/continous-integration/target/citibank.war root@172.31.89.181:/root/tomcat/APACHE_TOMCAT/webapps"
+	   sh "ssh root@172.31.89.181 /root/tomcat/APACHE_TOMCAT/bin/startup.sh"
+	   echo "Deployement completed"
+        }
+      }
+post{
+success{
+    mail to: 'naveentanish20@gmail.com',
+    subject: "Job '${JOB_NAME}' (${BUILD_NUMBER}) is success",
+    body: "Please go to ${BUILD_URL} and  (${BUILD_NUMBER}) and verify the build is success"
+    }
+failure{
+    mail to: 'naveentanish20@gmail.com',
+    subject: "Job '${JOB_NAME}' (${BUILD_NUMBER}) is failed",
+    body: "Please go to ${BUILD_URL} and verify the build"
+    }
+always{
+    mail to: 'naveentanish20@gmail.com',
+	subject: "Job '${JOB_NAME}' (${BUILD_NUMBER}) is always",
+	body: "Please go to ${BUILD_URL} and this is always"
+       }
+      } 	  
+    }
+  } 
+}

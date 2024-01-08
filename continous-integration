@@ -1,0 +1,70 @@
+pipeline{
+agent any
+parameters {
+  string defaultValue: 'master', description: 'Please select the branch', name: 'Branch', trim: true
+  choice choices: ['Development', 'QA', 'Pre-Production', 'Production'], description: 'Please select the server to deploy', name: 'Choice'
+  booleanParam defaultValue: true, description: 'Please select the deploy or not ', name: 'Deploy'
+}
+stages{
+   stage("GIT"){
+    steps{
+      script{
+	   echo "Cloning started"
+	   echo "$Branch"
+	   git branch: '$Branch', credentialsId: 'GitHub', url: 'https://github.com/naveen5758/sample_project.git'
+	   echo "cloning completed"
+        }
+      }
+    }
+   stage("Maven"){
+    steps{
+      script{
+	   echo "Build started"
+	   sh 'mvn clean package'
+	   echo "Build completed"
+        }
+      }
+    }	
+   stage("sonarscaner"){
+    steps{
+      script{
+	   echo "sonarscaner started"
+	   
+	   echo "sonarscaner completed"
+        }
+      }
+    }	
+   stage("sonarqubes"){
+    steps{
+      script{
+	   echo "sonarqubes started"
+	   
+	   echo "sonarqubes completed"
+        }
+      }
+    }	
+   stage("Nexus"){
+    steps{
+      script{
+	   echo "Nexus started"
+	   
+	   echo "Nexus completed"
+        }
+      }
+    }
+   stage("Calling_Deployment_job"){
+    steps{
+      script{
+	   echo "Job started"
+	  build job: 'continous-deployement', parameters: [
+                   string(name: 'Branch', value: "${params.Branch}"),
+                   string(name: 'Choice', value: "${params.Choice}"),
+	               string(name: 'Deploy', value: "${params.Deploy}")
+	                                                   ]
+	   echo "Job completed"
+        }
+      }
+    }	
+   }
+  } 
+
